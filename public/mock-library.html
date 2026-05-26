@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlotte — Mock Library v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:     #000000;
+    --void:      #050505;
+    --dark-1:    #0a0a0a;
+    --dark-2:    #101010;
+    --dark-3:    #161616;
+    --dark-4:    #1e1e1e;
+    --dark-5:    #282828;
+    --dark-6:    #333333;
+    --dark-7:    #404040;
+
+    --text-1:    #f0f0f0;
+    --text-2:    #b0b0b0;
+    --text-3:    #707070;
+    --text-4:    #404040;
+
+    --blue:      #1d6aff;
+    --blue-hi:   #5590ff;
+    --blue-lo:   #0f3a99;
+    --blue-dim:  rgba(29,106,255,0.10);
+    --blue-glow: rgba(29,106,255,0.3);
+
+    --red:       #ff4444;
+    --red-dim:   rgba(255,68,68,0.1);
+
+    --mono: 'JetBrains Mono', monospace;
+    --ui:   'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--mono);
+    background: var(--black);
+    color: var(--text-1);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 12px;
+  }
+
+  /* ══ TOPBAR ══════════════════════════════════ */
+  .topbar {
+    display: flex;
+    align-items: stretch;
+    height: 50px;
+    background: var(--void);
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    border-right: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .brand::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 8px var(--blue-glow);
+  }
+
+  .brand-inner { display: flex; flex-direction: column; gap: 3px; }
+
+  .brand-name {
+    font-family: var(--ui);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .brand-name em { color: var(--blue); font-style: normal; }
+
+  .brand-sub {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-4);
+    line-height: 1;
+  }
+
+  .tabs { display: flex; flex: 1; }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-right: 1px solid var(--dark-4);
+    cursor: pointer;
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    transition: all 0.15s;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text-2); background: var(--dark-1); }
+  .tab.active { color: var(--text-1); background: var(--dark-2); }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 10px var(--blue-glow);
+  }
+
+  .tab-n { font-family: var(--mono); font-size: 9px; font-weight: 400; color: var(--blue); }
+  .tab:not(.active) .tab-n { color: var(--dark-6); }
+
+  .tab-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-hi);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 6px var(--blue-glow);
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .btn-offline {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text-3);
+    padding: 0 22px;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-offline:hover { color: var(--text-1); background: var(--dark-2); }
+
+  /* ══ TOOLBAR ═════════════════════════════════ */
+  .lib-toolbar {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    background: var(--dark-1);
+    border-bottom: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    padding: 0 14px;
+    gap: 14px;
+  }
+
+  .lt-seg { display: flex; align-items: center; gap: 7px; }
+  .lt-label { font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-4); font-family: var(--ui); font-weight: 500; white-space: nowrap; }
+  .lt-val { font-size: 10px; color: var(--blue-hi); font-family: var(--mono); }
+  .lt-val.dim { color: var(--text-3); }
+  .lt-divider { width: 1px; height: 16px; background: var(--dark-5); flex-shrink: 0; }
+  .lt-right { display: flex; align-items: center; gap: 7px; margin-left: auto; }
+
+  .lt-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--dark-3);
+    border: 1px solid var(--dark-5);
+    padding: 3px 10px;
+    height: 24px;
+  }
+
+  .lt-search-icon { font-size: 11px; color: var(--text-4); }
+
+  .lt-search input {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-1);
+    outline: none;
+    width: 140px;
+    caret-color: var(--blue);
+  }
+
+  .lt-search input::placeholder { color: var(--text-4); }
+
+  .lt-icon-btn {
+    width: 24px; height: 24px;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.12s;
+  }
+
+  .lt-icon-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+
+  /* ══ MAIN ════════════════════════════════════ */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── LEFT SIDEBAR ───────────────────────────── */
+  .sidebar {
+    width: 196px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--void);
+    overflow: hidden;
+  }
+
+  /* header row — mirrors Scenarios pattern */
+  .sb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--dark-4);
+    flex-shrink: 0;
+  }
+
+  .sb-head-label {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-4);
+  }
+
+  .btn-new-mock {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: background 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .btn-new-mock:hover { background: var(--blue-hi); }
+
+  .sb-section {
+    border-bottom: 1px solid var(--dark-3);
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
+
+  .sb-label {
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-4);
+    font-family: var(--ui);
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .sb-select {
+    width: 100%;
+    background: var(--dark-3);
+    border: 1px solid var(--dark-5);
+    color: var(--text-2);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 5px 8px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23404040'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 22px;
+  }
+
+  .sb-endpoints { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .sb-endpoints::-webkit-scrollbar { width: 2px; }
+  .sb-endpoints::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  .sb-ep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+
+  .sb-ep:hover { background: var(--dark-2); }
+
+  .sb-checkbox {
+    width: 11px; height: 11px;
+    border: 1px solid var(--dark-6);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+  }
+
+  .sb-ep.on .sb-checkbox { border-color: var(--blue); background: var(--blue-dim); }
+
+  .sb-mark { width: 5px; height: 5px; background: var(--blue); display: none; }
+  .sb-ep.on .sb-mark { display: block; }
+
+  .sb-ep-text { font-size: 9px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .sb-ep.on .sb-ep-text { color: var(--text-2); }
+
+  .sb-ep-count { font-size: 9px; color: var(--text-4); flex-shrink: 0; }
+  .sb-ep.on .sb-ep-count { color: var(--blue-hi); }
+
+  /* ── CENTER: accordion ──────────────────────── */
+  .col-mocks {
+    width: 380px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--black);
+    overflow: hidden;
+  }
+
+  .col-cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--dark-3);
+    flex-shrink: 0;
+  }
+
+  .col-cap-label { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-4); font-family: var(--ui); font-weight: 500; }
+  .col-cap-meta { font-size: 9px; color: var(--text-4); }
+
+  .mock-list { flex: 1; overflow-y: auto; }
+  .mock-list::-webkit-scrollbar { width: 2px; }
+  .mock-list::-webkit-scrollbar-thumb { background: var(--dark-4); }
+
+  .api-group { border-bottom: 1px solid var(--dark-2); }
+
+  .api-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+
+  .api-row:hover { background: var(--dark-2); }
+  .api-row.open  { background: var(--dark-2); }
+
+  .api-chevron {
+    font-size: 9px;
+    color: var(--text-4);
+    flex-shrink: 0;
+    width: 10px;
+    transition: transform 0.15s, color 0.15s;
+  }
+
+  .api-row.open .api-chevron { transform: rotate(90deg); color: var(--text-3); }
+  .api-row.has-serving .api-chevron { color: var(--blue-hi); }
+  .api-row.open.has-serving .api-chevron { color: var(--blue-hi); }
+
+  .api-path { font-family: var(--mono); font-size: 10px; color: var(--text-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .api-row.open .api-path { color: var(--text-1); }
+  .api-count { font-size: 9px; color: var(--text-4); flex-shrink: 0; }
+
+  .mock-rows { display: none; }
+  .mock-rows.open { display: block; }
+
+  .mock-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px 7px 30px;
+    cursor: pointer;
+    border-top: 1px solid var(--dark-2);
+    transition: background 0.08s;
+    position: relative;
+  }
+
+  .mock-row:hover { background: var(--dark-3); }
+
+  .mock-row.selected {
+    background: var(--dark-4);
+  }
+
+  .mock-row.selected::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 2px 0 8px var(--blue-glow);
+  }
+
+  .mr-radio {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--dark-6);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+  }
+
+  .mock-row.serving .mr-radio { border-color: var(--blue); background: var(--blue-dim); }
+
+  .mr-radio-fill {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: none;
+    box-shadow: 0 0 4px var(--blue-glow);
+  }
+
+  .mock-row.serving .mr-radio-fill { display: block; }
+
+  .mr-name { font-family: var(--ui); font-size: 11px; font-weight: 600; color: var(--text-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mock-row.selected .mr-name, .mock-row.serving .mr-name { color: var(--text-1); }
+
+  .mr-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.12s;
+    flex-shrink: 0;
+  }
+
+  .mock-row:hover .mr-actions, .mock-row.selected .mr-actions { opacity: 1; }
+
+  .mr-btn {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .mr-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .mr-btn.variants { border-color: var(--blue-lo); color: var(--blue-hi); background: var(--blue-dim); }
+  .mr-btn.variants:hover { border-color: var(--blue); color: var(--text-1); }
+  .mr-btn.serve:hover { border-color: var(--blue); color: var(--blue-hi); }
+  .mr-btn.stop { display: none; }
+  .mock-row.serving:hover .mr-btn.stop { display: flex; }
+  .mr-btn.stop:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+  .mr-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* new mock inline row */
+  .mock-row-new {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px 7px 30px;
+    border-top: 1px solid var(--dark-2);
+    cursor: pointer;
+    transition: background 0.08s;
+    color: var(--text-4);
+    font-size: 9px;
+    font-family: var(--ui);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .mock-row-new:hover { background: var(--dark-2); color: var(--blue-hi); }
+
+  /* ── RIGHT: detail / new mock form ─────────────── */
+  .col-detail {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--dark-2);
+  }
+
+  /* new mock form */
+  .new-mock-form {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .new-mock-form.visible { display: flex; }
+
+  .form-head {
+    padding: 16px 22px 14px;
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    background: var(--dark-3);
+  }
+
+  .form-head-title { font-family: var(--ui); font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+  .form-head-sub { font-size: 10px; color: var(--text-3); line-height: 1.5; }
+
+  .form-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .field-label {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .field-hint { font-size: 9px; color: var(--text-4); line-height: 1.5; margin-top: -2px; }
+
+  .ep-selected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--dark-4);
+    border: 1px solid var(--blue-lo);
+    padding: 9px 12px;
+  }
+
+  .ep-sel-method {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--blue-hi);
+    border: 1px solid var(--blue-lo);
+    background: var(--blue-dim);
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+
+  .ep-sel-path { font-family: var(--mono); font-size: 10px; color: var(--text-1); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .ep-sel-clear { font-size: 11px; color: var(--text-4); cursor: pointer; flex-shrink: 0; transition: color 0.12s; background: none; border: none; }
+  .ep-sel-clear:hover { color: var(--text-2); }
+
+  .ep-picker {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--dark-6);
+  }
+
+  .ep-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dark-4);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--dark-5);
+  }
+
+  .ep-search input {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-1);
+    outline: none;
+    flex: 1;
+    caret-color: var(--blue);
+  }
+
+  .ep-search input::placeholder { color: var(--text-4); }
+  .ep-search-icon { font-size: 12px; color: var(--text-4); flex-shrink: 0; }
+
+  .ep-or {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 12px;
+    background: var(--dark-3);
+  }
+
+  .ep-or-line { flex: 1; height: 1px; background: var(--dark-5); }
+  .ep-or-text { font-family: var(--ui); font-size: 8px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-4); }
+
+  .ep-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dark-4);
+    padding: 8px 12px;
+  }
+
+  .ep-method {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    background: var(--dark-5);
+    border: 1px solid var(--dark-6);
+    color: var(--text-2);
+    padding: 3px 7px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    flex-shrink: 0;
+  }
+
+  .ep-custom input {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-1);
+    outline: none;
+    flex: 1;
+    caret-color: var(--blue);
+  }
+
+  .ep-custom input::placeholder { color: var(--text-4); }
+
+  .field-input {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-input:focus { border-color: var(--blue-lo); }
+  .field-input::placeholder { color: var(--text-4); font-style: italic; }
+
+  .field-textarea {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    outline: none;
+    resize: none;
+    height: 100px;
+    line-height: 1.6;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-textarea:focus { border-color: var(--blue-lo); }
+  .field-textarea::placeholder { color: var(--text-4); font-style: italic; }
+
+  .form-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--dark-3);
+  }
+
+  .btn-generate {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn-generate:hover { background: var(--blue-hi); }
+
+  .btn-cancel {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-cancel:hover { border-color: var(--text-3); color: var(--text-2); }
+
+  .form-hint { font-size: 9px; color: var(--text-4); line-height: 1.4; }
+
+  /* JSON editor */
+  .editor-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .dhead {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    background: var(--dark-3);
+  }
+
+  .dhead-row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+
+  .d-method {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--blue-hi);
+    border: 1px solid var(--blue-lo);
+    background: var(--blue-dim);
+    padding: 3px 9px;
+    flex-shrink: 0;
+  }
+
+  .d-name { font-family: var(--ui); font-size: 13px; font-weight: 700; color: var(--text-1); flex: 1; }
+
+  .d-serving {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid var(--blue-lo);
+    color: var(--blue-hi);
+    background: var(--blue-dim);
+    flex-shrink: 0;
+  }
+
+  .dhead-row2 { display: flex; align-items: center; gap: 8px; }
+  .d-path { font-family: var(--mono); font-size: 10px; color: var(--text-3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-file { font-family: var(--mono); font-size: 9px; color: var(--text-4); }
+
+  .dtabs { display: flex; background: var(--dark-2); border-bottom: 1px solid var(--dark-5); flex-shrink: 0; }
+
+  .dtab {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    cursor: pointer;
+    color: var(--text-3);
+    border-right: 1px solid var(--dark-4);
+    position: relative;
+    transition: color 0.12s;
+  }
+
+  .dtab:hover { color: var(--text-2); }
+  .dtab.active { color: var(--text-1); }
+
+  .dtab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 8px var(--blue-glow);
+  }
+
+  .editor-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px; }
+
+  .editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--void);
+    border: 1px solid var(--dark-5);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .editor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    background: var(--dark-1);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .editor-left { display: flex; align-items: center; gap: 12px; }
+
+  .e-valid { display: flex; align-items: center; gap: 5px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); font-family: var(--ui); font-weight: 600; }
+  .e-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 6px var(--blue-glow); flex-shrink: 0; }
+  .e-file { font-size: 9px; color: var(--text-4); }
+  .editor-right { display: flex; align-items: center; gap: 5px; }
+
+  .ebtn {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .ebtn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .ebtn.cta { background: var(--blue); border-color: var(--blue); color: var(--text-1); }
+  .ebtn.cta:hover { background: var(--blue-hi); border-color: var(--blue-hi); }
+
+  .editor-code { flex: 1; overflow: auto; padding: 16px 18px; }
+  .editor-code::-webkit-scrollbar { width: 3px; }
+  .editor-code::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  pre { font-family: var(--mono); font-size: 12px; line-height: 1.9; color: #a8a8a8; white-space: pre; }
+  .jb { color: var(--dark-6); }
+  .jk { color: var(--blue-hi); }
+  .js { color: #7aaa7a; }
+  .jbl{ color: #c8984a; }
+
+  .tweak {
+    display: flex;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    background: var(--dark-1);
+  }
+
+  .tweak-in {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-style: italic;
+    color: var(--text-2);
+    padding: 9px 14px;
+    outline: none;
+    caret-color: var(--blue);
+  }
+
+  .tweak-in::placeholder { color: var(--text-4); }
+
+  .tweak-go {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .tweak-go:hover { background: var(--blue-hi); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-inner">
+      <div class="brand-name">Char<em>lotte</em></div>
+      <div class="brand-sub">Mock Intelligence</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab">Live Traffic <span class="tab-n">111</span></div>
+    <div class="tab active">Mock Library <span class="tab-n">63</span></div>
+    <div class="tab">Templates</div>
+    <div class="tab">Scenarios <span class="tab-dot"></span> <span class="tab-n">2</span></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-offline">Go Offline</button>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="lib-toolbar">
+  <div class="lt-seg">
+    <span class="lt-label">Serving</span>
+    <span class="lt-val">4 endpoints</span>
+  </div>
+  <div class="lt-divider"></div>
+  <div class="lt-seg">
+    <span class="lt-label">Total</span>
+    <span class="lt-val dim">63</span>
+  </div>
+  <div class="lt-right">
+    <div class="lt-search">
+      <span class="lt-search-icon">⌕</span>
+      <input type="text" placeholder="Search mocks…">
+    </div>
+    <button class="lt-icon-btn" title="Refresh">↺</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- header mirrors Scenarios pattern -->
+    <div class="sb-head">
+      <span class="sb-head-label">Mocks</span>
+      <button class="btn-new-mock" onclick="showNewMockForm()">+ New</button>
+    </div>
+
+    <div class="sb-section">
+      <span class="sb-label">Feature</span>
+      <select class="sb-select">
+        <option>All endpoints</option>
+        <option selected>Rewards Balance</option>
+        <option>Rewards Dashboard Venture X</option>
+        <option>Card Onboarding</option>
+      </select>
+    </div>
+
+    <div class="sb-section" style="padding-bottom:4px;">
+      <span class="sb-label">Endpoint</span>
+    </div>
+
+    <div class="sb-endpoints">
+      <div class="sb-ep on">
+        <div class="sb-checkbox"><div class="sb-mark"></div></div>
+        <span class="sb-ep-text">/login</span>
+        <span class="sb-ep-count">2</span>
+      </div>
+      <div class="sb-ep on">
+        <div class="sb-checkbox"><div class="sb-mark"></div></div>
+        <span class="sb-ep-text">/loyalty/accounts/digital</span>
+        <span class="sb-ep-count">3</span>
+      </div>
+      <div class="sb-ep">
+        <div class="sb-checkbox"></div>
+        <span class="sb-ep-text">/loyalty/accounts/transactions</span>
+        <span class="sb-ep-count">2</span>
+      </div>
+      <div class="sb-ep">
+        <div class="sb-checkbox"></div>
+        <span class="sb-ep-text">/private/1364896/loyalty-benefits-account</span>
+        <span class="sb-ep-count">2</span>
+      </div>
+      <div class="sb-ep">
+        <div class="sb-checkbox"></div>
+        <span class="sb-ep-text">/private/1364896/loyalty-benefits-customer</span>
+        <span class="sb-ep-count">2</span>
+      </div>
+      <div class="sb-ep">
+        <div class="sb-checkbox"></div>
+        <span class="sb-ep-text">/private/1595110/edge/customers/accounts</span>
+        <span class="sb-ep-count">6</span>
+      </div>
+      <div class="sb-ep">
+        <div class="sb-checkbox"></div>
+        <span class="sb-ep-text">/internal-ops/decide-variation</span>
+        <span class="sb-ep-count">1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: accordion -->
+  <div class="col-mocks">
+    <div class="col-cap">
+      <span class="col-cap-label">8 endpoints</span>
+      <span class="col-cap-meta">63 mocks</span>
+    </div>
+    <div class="mock-list">
+
+      <!-- /login -->
+      <div class="api-group">
+        <div class="api-row open has-serving" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/login</span>
+          <span class="api-count">2</span>
+        </div>
+        <div class="mock-rows open">
+          <div class="mock-row serving selected" onclick="selectMock(this)">
+            <div class="mr-radio"><div class="mr-radio-fill"></div></div>
+            <span class="mr-name">Login — standard</span>
+            <div class="mr-actions">
+              <button class="mr-btn variants" onclick="event.stopPropagation()">✦ Variants</button>
+              <button class="mr-btn stop" onclick="event.stopPropagation()">Stop serving</button>
+              <button class="mr-btn del" onclick="event.stopPropagation()">✕</button>
+            </div>
+          </div>
+          <div class="mock-row" onclick="selectMock(this)">
+            <div class="mr-radio"><div class="mr-radio-fill"></div></div>
+            <span class="mr-name">Login — failed auth</span>
+            <div class="mr-actions">
+              <button class="mr-btn variants" onclick="event.stopPropagation()">✦ Variants</button>
+              <button class="mr-btn serve" onclick="event.stopPropagation()">Serve this</button>
+              <button class="mr-btn del" onclick="event.stopPropagation()">✕</button>
+            </div>
+          </div>
+          <div class="mock-row-new" onclick="showNewMockFormForEndpoint('/login')">+ New mock</div>
+        </div>
+      </div>
+
+      <!-- loyalty accounts -->
+      <div class="api-group">
+        <div class="api-row open has-serving" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/protected/375751/loyalty/accounts/digital-account-view/get-accounts</span>
+          <span class="api-count">3</span>
+        </div>
+        <div class="mock-rows open">
+          <div class="mock-row serving" onclick="selectMock(this)">
+            <div class="mr-radio"><div class="mr-radio-fill"></div></div>
+            <span class="mr-name">Miles and Cash</span>
+            <div class="mr-actions">
+              <button class="mr-btn variants" onclick="event.stopPropagation()">✦ Variants</button>
+              <button class="mr-btn stop" onclick="event.stopPropagation()">Stop serving</button>
+              <button class="mr-btn del" onclick="event.stopPropagation()">✕</button>
+            </div>
+          </div>
+          <div class="mock-row" onclick="selectMock(this)">
+            <div class="mr-radio"><div class="mr-radio-fill"></div></div>
+            <span class="mr-name">Miles only</span>
+            <div class="mr-actions">
+              <button class="mr-btn variants" onclick="event.stopPropagation()">✦ Variants</button>
+              <button class="mr-btn serve" onclick="event.stopPropagation()">Serve this</button>
+              <button class="mr-btn del" onclick="event.stopPropagation()">✕</button>
+            </div>
+          </div>
+          <div class="mock-row" onclick="selectMock(this)">
+            <div class="mr-radio"><div class="mr-radio-fill"></div></div>
+            <span class="mr-name">Zero balance</span>
+            <div class="mr-actions">
+              <button class="mr-btn variants" onclick="event.stopPropagation()">✦ Variants</button>
+              <button class="mr-btn serve" onclick="event.stopPropagation()">Serve this</button>
+              <button class="mr-btn del" onclick="event.stopPropagation()">✕</button>
+            </div>
+          </div>
+          <div class="mock-row-new" onclick="showNewMockFormForEndpoint('/protected/375751/loyalty/accounts/digital-account-view/get-accounts')">+ New mock</div>
+        </div>
+      </div>
+
+      <!-- transactions — closed -->
+      <div class="api-group">
+        <div class="api-row" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/loyalty/accounts/transaction-history/transactions</span>
+          <span class="api-count">2</span>
+        </div>
+        <div class="mock-rows"></div>
+      </div>
+
+      <!-- loyalty benefits account — closed, has serving -->
+      <div class="api-group">
+        <div class="api-row has-serving" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/private/1364896/loyalty-benefits/retrieve-account-benefits</span>
+          <span class="api-count">2</span>
+        </div>
+        <div class="mock-rows"></div>
+      </div>
+
+      <!-- loyalty benefits customer — closed, has serving -->
+      <div class="api-group">
+        <div class="api-row has-serving" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/private/1364896/loyalty-benefits/retrieve-customer-benefits</span>
+          <span class="api-count">2</span>
+        </div>
+        <div class="mock-rows"></div>
+      </div>
+
+      <!-- edge customers — closed -->
+      <div class="api-group">
+        <div class="api-row" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/private/1595110/edge/customers/~/accounts</span>
+          <span class="api-count">6</span>
+        </div>
+        <div class="mock-rows"></div>
+      </div>
+
+      <!-- decide variation — closed -->
+      <div class="api-group">
+        <div class="api-row" onclick="toggleGroup(this)">
+          <span class="api-chevron">▶</span>
+          <span class="api-path">/internal-ops/feature-experimentation/servicing/decide-variation</span>
+          <span class="api-count">1</span>
+        </div>
+        <div class="mock-rows"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: JSON editor or new mock form -->
+  <div class="col-detail">
+
+    <!-- NEW MOCK FORM -->
+    <div class="new-mock-form" id="newMockForm">
+      <div class="form-head">
+        <div class="form-head-title">New Mock</div>
+        <div class="form-head-sub">Pick an endpoint, describe the response, and Claude will generate it and save it to the library.</div>
+      </div>
+      <div class="form-body">
+
+        <div class="field-group">
+          <span class="field-label">Endpoint</span>
+          <span class="field-hint">Type to filter your known endpoints.</span>
+          <div style="position:relative;">
+            <div class="ep-search" style="border:1px solid var(--dark-6);">
+              <span class="ep-search-icon">⌕</span>
+              <input type="text" placeholder="e.g. loyalty, login, decide…" id="epSearch" oninput="filterEndpoints(this.value)" autocomplete="off">
+            </div>
+            <div id="epDropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--dark-3); border:1px solid var(--dark-5); border-top:none; z-index:10; max-height:180px; overflow-y:auto;">
+            </div>
+          </div>
+          <!-- selected endpoint display -->
+          <div class="ep-selected" id="epSelected" style="display:none;">
+            <span class="ep-sel-method" id="epSelMethod">POST</span>
+            <span class="ep-sel-path" id="epSelPath"></span>
+            <button class="ep-sel-clear" onclick="clearEndpoint()">✕</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Mock Name</span>
+          <input class="field-input" type="text" placeholder="e.g. Miles and Cash — zero balance" id="mockNameInput">
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Describe the response</span>
+          <span class="field-hint">What state should this response represent?</span>
+          <textarea class="field-textarea" placeholder="e.g. User with Miles and Cash rewards, zero balance on both, no active offers, Gold loyalty tier…"></textarea>
+        </div>
+
+      </div>
+      <div class="form-footer">
+        <button class="btn-cancel" onclick="hideNewMockForm()">Cancel</button>
+        <button class="btn-generate">✦ Generate</button>
+        <span class="form-hint">Saves directly<br>to Mock Library.</span>
+      </div>
+    </div>
+
+    <!-- JSON EDITOR VIEW -->
+    <div class="editor-view" id="editorView">
+      <div class="dhead">
+        <div class="dhead-row1">
+          <span class="d-method">GET</span>
+          <span class="d-name">Login — standard</span>
+          <span class="d-serving">● Serving</span>
+        </div>
+        <div class="dhead-row2">
+          <span class="d-path">/login</span>
+          <span class="d-file">login.json</span>
+        </div>
+      </div>
+
+      <div class="dtabs">
+        <div class="dtab active">Response</div>
+        <div class="dtab">Request</div>
+        <div class="dtab">Headers</div>
+      </div>
+
+      <div class="editor-wrap">
+        <div class="editor">
+          <div class="editor-bar">
+            <div class="editor-left">
+              <div class="e-valid"><div class="e-dot"></div>Valid JSON</div>
+              <span class="e-file">login.json</span>
+            </div>
+            <div class="editor-right">
+              <button class="ebtn">Format</button>
+              <button class="ebtn"><span style="color:var(--blue-hi);font-size:10px;">✦</span> Variants</button>
+              <button class="ebtn cta">Save & Serve</button>
+            </div>
+          </div>
+
+          <div class="editor-code">
+            <pre><span class="jb">{</span>
+  <span class="jk">"profileReferenceId"</span><span class="jb">:</span>   <span class="js">"dyEEnaW0hmgtys4cOn"</span><span class="jb">,</span>
+  <span class="jk">"customerReferenceId"</span><span class="jb">:</span>  <span class="js">"VokhBI7LYJ9zM+4RFEOkqQ=="</span><span class="jb">,</span>
+  <span class="jk">"platforms"</span><span class="jb">: [</span>
+    <span class="jb">{</span>
+      <span class="jk">"platformCode"</span><span class="jb">:</span>            <span class="js">"EASE"</span><span class="jb">,</span>
+      <span class="jk">"platformCodeDescription"</span><span class="jb">:</span> <span class="js">"Enterprise Account Servicing"</span>
+    <span class="jb">},</span>
+    <span class="jb">{</span>
+      <span class="jk">"platformCode"</span><span class="jb">:</span>            <span class="js">"EOS"</span><span class="jb">,</span>
+      <span class="jk">"platformCodeDescription"</span><span class="jb">:</span> <span class="js">"Card Online Servicing Platform"</span>
+    <span class="jb">}</span>
+  <span class="jb">],</span>
+  <span class="jk">"loginStatus"</span><span class="jb">:</span>  <span class="js">"SUCCESS"</span><span class="jb">,</span>
+  <span class="jk">"mobileOnly"</span><span class="jb">:</span>   <span class="jbl">false</span><span class="jb">,</span>
+  <span class="jk">"_headers"</span><span class="jb">: {</span>
+    <span class="jk">"auth-token"</span><span class="jb">:</span>       <span class="js">"mock-auth-token-offline"</span><span class="jb">,</span>
+    <span class="jk">"transaction-info"</span><span class="jb">:</span> <span class="js">"mock-transaction-info"</span>
+  <span class="jb">}</span>
+<span class="jb">}</span></pre>
+          </div>
+
+          <div class="tweak">
+            <input class="tweak-in" type="text" placeholder="Make it so… (e.g. 'set loginStatus to FAILED')">
+            <button class="tweak-go">Tweak</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const ENDPOINTS = [
+    { method: 'GET',  path: '/login' },
+    { method: 'POST', path: '/protected/375751/loyalty/accounts/digital-account-view/get-accounts' },
+    { method: 'GET',  path: '/loyalty/accounts/transaction-history/transactions' },
+    { method: 'GET',  path: '/private/1364896/loyalty-benefits/retrieve-account-benefits' },
+    { method: 'GET',  path: '/private/1364896/loyalty-benefits/retrieve-customer-benefits' },
+    { method: 'GET',  path: '/private/1595110/edge/customers/~/accounts' },
+    { method: 'POST', path: '/internal-ops/feature-experimentation/servicing/decide-variation' },
+    { method: 'GET',  path: '/customers/~/messaging-preferences' },
+    { method: 'GET',  path: '/private/1612081/v1/force-upgrade' },
+    { method: 'GET',  path: '/identity/enhanced-authentication/devices' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/rewards-hero' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/earn-activity' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/redemption-options' },
+  ];
+
+  let selectedEndpoint = null;
+
+  function filterEndpoints(val) {
+    const dd = document.getElementById('epDropdown');
+    if (!val) { dd.style.display = 'none'; return; }
+    const matches = ENDPOINTS.filter(e => e.path.toLowerCase().includes(val.toLowerCase()));
+    if (!matches.length) { dd.style.display = 'none'; return; }
+    dd.innerHTML = matches.map(e => `
+      <div onclick="selectEndpoint('${e.method}', '${e.path}')" style="
+        display:flex; align-items:center; gap:10px;
+        padding:7px 12px; cursor:pointer; border-bottom:1px solid var(--dark-4);
+        font-family:var(--mono); font-size:10px; color:var(--text-2);
+        transition:background 0.08s;
+      " onmouseover="this.style.background='var(--dark-4)'" onmouseout="this.style.background='none'">
+        <span style="font-family:var(--ui);font-size:8px;font-weight:800;letter-spacing:0.1em;
+          color:var(--blue-hi);border:1px solid var(--blue-lo);background:var(--blue-dim);
+          padding:2px 5px;flex-shrink:0;">${e.method}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.path}</span>
+      </div>
+    `).join('');
+    dd.style.display = 'block';
+  }
+
+  function selectEndpoint(method, path) {
+    selectedEndpoint = { method, path };
+    document.getElementById('epSearch').style.display = 'none';
+    document.getElementById('epDropdown').style.display = 'none';
+    document.getElementById('epSelected').style.display = 'flex';
+    document.getElementById('epSelMethod').textContent = method;
+    document.getElementById('epSelPath').textContent = path;
+  }
+
+  function clearEndpoint() {
+    selectedEndpoint = null;
+    document.getElementById('epSearch').style.display = 'flex';
+    document.getElementById('epSearch').value = '';
+    document.getElementById('epSelected').style.display = 'none';
+    document.getElementById('epDropdown').style.display = 'none';
+  }
+
+  function toggleGroup(apiRow) {
+    const isOpen = apiRow.classList.contains('open');
+    apiRow.classList.toggle('open', !isOpen);
+    const mockRows = apiRow.nextElementSibling;
+    if (mockRows) mockRows.classList.toggle('open', !isOpen);
+  }
+
+  function selectMock(row) {
+    if (event.target.closest('.mr-btn')) return;
+    document.querySelectorAll('.mock-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    hideNewMockForm();
+  }
+
+  function showNewMockForm() {
+    document.getElementById('newMockForm').classList.add('visible');
+    document.getElementById('editorView').style.display = 'none';
+    clearEndpoint();
+    document.getElementById('mockNameInput').value = '';
+  }
+
+  function showNewMockFormForEndpoint(path) {
+    showNewMockForm();
+    const ep = ENDPOINTS.find(e => e.path === path);
+    if (ep) selectEndpoint(ep.method, ep.path);
+  }
+
+  function hideNewMockForm() {
+    document.getElementById('newMockForm').classList.remove('visible');
+    document.getElementById('editorView').style.display = 'flex';
+  }
+
+  // close dropdown when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#epSearch') && !e.target.closest('#epDropdown')) {
+      document.getElementById('epDropdown').style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>

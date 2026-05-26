@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlotte — Templates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:     #000000;
+    --void:      #050505;
+    --dark-1:    #0a0a0a;
+    --dark-2:    #101010;
+    --dark-3:    #161616;
+    --dark-4:    #1e1e1e;
+    --dark-5:    #282828;
+    --dark-6:    #333333;
+    --dark-7:    #404040;
+
+    --text-1:    #f0f0f0;
+    --text-2:    #b0b0b0;
+    --text-3:    #707070;
+    --text-4:    #404040;
+
+    --blue:      #1d6aff;
+    --blue-hi:   #5590ff;
+    --blue-lo:   #0f3a99;
+    --blue-dim:  rgba(29,106,255,0.10);
+    --blue-glow: rgba(29,106,255,0.3);
+
+    --red:       #ff4444;
+    --red-dim:   rgba(255,68,68,0.1);
+
+    --mono: 'JetBrains Mono', monospace;
+    --ui:   'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--mono);
+    background: var(--black);
+    color: var(--text-1);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 12px;
+  }
+
+  /* ══ TOPBAR ══════════════════════════════════ */
+  .topbar {
+    display: flex;
+    align-items: stretch;
+    height: 50px;
+    background: var(--void);
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    border-right: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .brand::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 8px var(--blue-glow);
+  }
+
+  .brand-inner { display: flex; flex-direction: column; gap: 3px; }
+
+  .brand-name {
+    font-family: var(--ui);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .brand-name em { color: var(--blue); font-style: normal; }
+
+  .brand-sub {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-4);
+    line-height: 1;
+  }
+
+  .tabs { display: flex; flex: 1; }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-right: 1px solid var(--dark-4);
+    cursor: pointer;
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    transition: all 0.15s;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text-2); background: var(--dark-1); }
+  .tab.active { color: var(--text-1); background: var(--dark-2); }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 10px var(--blue-glow);
+  }
+
+  .tab-n { font-family: var(--mono); font-size: 9px; font-weight: 400; color: var(--blue); }
+  .tab:not(.active) .tab-n { color: var(--dark-6); }
+
+  .tab-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-hi);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 6px var(--blue-glow);
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .btn-offline {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text-3);
+    padding: 0 22px;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-offline:hover { color: var(--text-1); background: var(--dark-2); }
+
+  /* ══ MAIN ════════════════════════════════════ */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── LEFT: template list ────────────────────── */
+  .col-left {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--void);
+    overflow: hidden;
+  }
+
+  .col-left-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--dark-4);
+    flex-shrink: 0;
+  }
+
+  .col-left-label {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-4);
+  }
+
+  .btn-new {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .btn-new:hover { background: var(--blue-hi); }
+
+  .template-list { flex: 1; overflow-y: auto; }
+  .template-list::-webkit-scrollbar { width: 2px; }
+  .template-list::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  .template-card {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--dark-2);
+    cursor: pointer;
+    transition: background 0.08s;
+    position: relative;
+  }
+
+  .template-card:hover { background: var(--dark-2); }
+  .template-card.selected { background: var(--dark-3); }
+
+  .template-card.selected::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 2px 0 8px var(--blue-glow);
+  }
+
+  .tc-name {
+    font-family: var(--ui);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tc-desc {
+    font-size: 10px;
+    color: var(--text-3);
+    line-height: 1.4;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tc-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tc-meta-item { font-size: 9px; color: var(--text-4); font-family: var(--mono); }
+
+  .tc-badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .tc-badge.focused { background: var(--dark-5); color: var(--text-3); border: 1px solid var(--dark-6); }
+  .tc-badge.plugin  { background: var(--blue-dim); color: var(--blue-hi); border: 1px solid var(--blue-lo); }
+  .tc-badge.manual  { background: var(--dark-4); color: var(--text-4); border: 1px solid var(--dark-6); }
+
+  .tc-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .template-card:hover .tc-actions,
+  .template-card.selected .tc-actions { opacity: 1; }
+
+  .tc-btn {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 18px;
+    display: flex;
+    align-items: center;
+  }
+
+  .tc-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .tc-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* ── CENTER: endpoint list ──────────────────── */
+  .col-center {
+    width: 340px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--black);
+    overflow: hidden;
+  }
+
+  .col-cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--dark-3);
+    flex-shrink: 0;
+  }
+
+  .col-cap-label {
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-1);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .col-cap-meta { font-size: 9px; color: var(--text-4); white-space: nowrap; margin-left: 8px; }
+
+  .ep-list { flex: 1; overflow-y: auto; }
+  .ep-list::-webkit-scrollbar { width: 2px; }
+  .ep-list::-webkit-scrollbar-thumb { background: var(--dark-4); }
+
+  .ep-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--dark-2);
+    transition: background 0.08s;
+  }
+
+  .ep-row:hover { background: var(--dark-2); }
+
+  .ep-method {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--blue-hi);
+    border: 1px solid var(--blue-lo);
+    background: var(--blue-dim);
+    padding: 2px 5px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .ep-path {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ep-remove {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 600;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-4);
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    flex-shrink: 0;
+  }
+
+  .ep-row:hover .ep-remove { opacity: 1; }
+  .ep-remove:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* add endpoint row */
+  .ep-add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--dark-2);
+    cursor: pointer;
+    color: var(--text-4);
+    font-size: 10px;
+    font-family: var(--ui);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    transition: all 0.08s;
+    position: relative;
+  }
+
+  .ep-add-row:hover { background: var(--dark-2); color: var(--blue-hi); }
+
+  /* inline add search */
+  .ep-add-search {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--dark-3);
+    background: var(--dark-2);
+    flex-shrink: 0;
+  }
+
+  .ep-add-search.visible { display: flex; }
+
+  .ep-add-search input {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-1);
+    outline: none;
+    flex: 1;
+    caret-color: var(--blue);
+  }
+
+  .ep-add-search input::placeholder { color: var(--text-4); }
+  .ep-add-icon { font-size: 12px; color: var(--text-4); flex-shrink: 0; }
+
+  .ep-add-dropdown {
+    display: none;
+    background: var(--dark-3);
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .ep-add-dropdown.visible { display: block; }
+
+  .ep-add-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--dark-4);
+    transition: background 0.08s;
+  }
+
+  .ep-add-option:hover { background: var(--dark-4); }
+
+  .ep-add-opt-method {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--blue-hi);
+    border: 1px solid var(--blue-lo);
+    background: var(--blue-dim);
+    padding: 2px 5px;
+    flex-shrink: 0;
+  }
+
+  .ep-add-opt-path {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* generate scenario footer */
+  .center-footer {
+    padding: 12px 14px;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    background: var(--dark-1);
+  }
+
+  .btn-gen-scenario {
+    width: 100%;
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .btn-gen-scenario:hover { background: var(--blue-hi); }
+
+  /* new template form — replaces center content */
+  .new-template-form {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .new-template-form.visible { display: flex; }
+
+  .ntf-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .field-label {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .field-hint { font-size: 9px; color: var(--text-4); line-height: 1.5; margin-top: -2px; }
+
+  .field-input {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-input:focus { border-color: var(--blue-lo); }
+  .field-input::placeholder { color: var(--text-4); font-style: italic; }
+
+  .field-textarea {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    resize: none;
+    height: 70px;
+    line-height: 1.6;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-textarea:focus { border-color: var(--blue-lo); }
+  .field-textarea::placeholder { color: var(--text-4); font-style: italic; }
+
+  /* source toggle */
+  .source-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .source-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--dark-5);
+    cursor: pointer;
+    transition: all 0.12s;
+    background: none;
+    text-align: left;
+  }
+
+  .source-opt:hover { border-color: var(--text-3); background: var(--dark-3); }
+  .source-opt.active { border-color: var(--blue); background: var(--blue-dim); }
+
+  .source-radio {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--dark-6);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .source-opt.active .source-radio { border-color: var(--blue); }
+
+  .source-radio-fill {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: none;
+  }
+
+  .source-opt.active .source-radio-fill { display: block; }
+
+  .source-body { flex: 1; }
+
+  .source-name {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-2);
+    margin-bottom: 1px;
+  }
+
+  .source-opt.active .source-name { color: var(--text-1); }
+
+  .source-desc { font-size: 9px; color: var(--text-4); line-height: 1.4; }
+
+  .ntf-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    display: flex;
+    gap: 7px;
+    background: var(--dark-1);
+  }
+
+  .ntf-btn {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background 0.12s;
+    flex-shrink: 0;
+  }
+
+  .ntf-btn:hover { background: var(--blue-hi); }
+
+  .ntf-cancel {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .ntf-cancel:hover { border-color: var(--text-3); color: var(--text-2); }
+
+  /* ── RIGHT: empty until generate form triggered ─── */
+  .col-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--dark-2);
+  }
+
+  .right-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px;
+  }
+
+  .right-empty-label {
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-4);
+    text-align: center;
+  }
+
+  .right-empty-sub {
+    font-size: 10px;
+    color: var(--text-4);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* generate scenario form — shown when Generate is clicked */
+  .gen-form {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .gen-form.visible { display: flex; }
+
+  .gen-head {
+    padding: 14px 22px 12px;
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    background: var(--dark-3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .gen-head-title { font-family: var(--ui); font-size: 13px; font-weight: 700; color: var(--text-1); }
+  .gen-head-sub { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+  .gen-close {
+    font-size: 14px;
+    color: var(--text-4);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.12s;
+    flex-shrink: 0;
+  }
+
+  .gen-close:hover { color: var(--text-2); }
+
+  .gen-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .gen-body::-webkit-scrollbar { width: 3px; }
+  .gen-body::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  .gen-field-label {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .gen-field-hint { font-size: 9px; color: var(--text-4); line-height: 1.5; margin-top: -2px; }
+
+  .gen-input {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .gen-input:focus { border-color: var(--blue-lo); }
+  .gen-input::placeholder { color: var(--text-4); font-style: italic; }
+
+  .gen-textarea {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    outline: none;
+    resize: none;
+    height: 120px;
+    line-height: 1.6;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .gen-textarea:focus { border-color: var(--blue-lo); }
+  .gen-textarea::placeholder { color: var(--text-4); font-style: italic; }
+
+  .gen-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--dark-3);
+  }
+
+  .btn-generate {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn-generate:hover { background: var(--blue-hi); }
+
+  .btn-cancel-gen {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-cancel-gen:hover { border-color: var(--text-3); color: var(--text-2); }
+
+  .gen-hint { font-size: 9px; color: var(--text-4); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-inner">
+      <div class="brand-name">Char<em>lotte</em></div>
+      <div class="brand-sub">Mock Intelligence</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab">Live Traffic <span class="tab-n">111</span></div>
+    <div class="tab">Mock Library <span class="tab-n">63</span></div>
+    <div class="tab active">Templates</div>
+    <div class="tab">Scenarios <span class="tab-dot"></span> <span class="tab-n">2</span></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-offline">Go Offline</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: template list -->
+  <div class="col-left">
+    <div class="col-left-head">
+      <span class="col-left-label">Templates</span>
+      <button class="btn-new" onclick="showNewTemplateForm()">+ New</button>
+    </div>
+    <div class="template-list">
+
+      <div class="template-card selected" onclick="selectTemplate(this)">
+        <div class="tc-name">Rewards Balance</div>
+        <div class="tc-desc">The rewards hub — balance, earn activity, and redemption</div>
+        <div class="tc-meta">
+          <span class="tc-badge plugin">Plugin map</span>
+          <span class="tc-meta-item">12 APIs</span>
+          <div class="tc-actions">
+            <button class="tc-btn del" onclick="event.stopPropagation()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="template-card" onclick="selectTemplate(this)">
+        <div class="tc-name">Venture X Dashboard</div>
+        <div class="tc-desc">Venture X rewards dashboard with premium benefits</div>
+        <div class="tc-meta">
+          <span class="tc-badge focused">Captured</span>
+          <span class="tc-meta-item">8 APIs</span>
+          <div class="tc-actions">
+            <button class="tc-btn del" onclick="event.stopPropagation()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="template-card" onclick="selectTemplate(this)">
+        <div class="tc-name">Card Onboarding</div>
+        <div class="tc-desc">New card activation and eligibility checks</div>
+        <div class="tc-meta">
+          <span class="tc-badge manual">Handcrafted</span>
+          <span class="tc-meta-item">6 APIs</span>
+          <div class="tc-actions">
+            <button class="tc-btn del" onclick="event.stopPropagation()">✕</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER: endpoint list or new template form -->
+  <div class="col-center">
+
+    <!-- endpoint list view -->
+    <div id="epListView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="col-cap">
+        <span class="col-cap-label">Rewards Balance</span>
+        <span class="col-cap-meta">12 APIs</span>
+      </div>
+
+      <!-- inline add search -->
+      <div class="ep-add-search" id="epAddSearch">
+        <span class="ep-add-icon">⌕</span>
+        <input type="text" placeholder="Search endpoints to add…" oninput="filterAddEndpoints(this.value)" id="epAddInput">
+        <button onclick="hideAddSearch()" style="background:none;border:none;color:var(--text-4);cursor:pointer;font-size:12px;">✕</button>
+      </div>
+      <div class="ep-add-dropdown" id="epAddDropdown"></div>
+
+      <div class="ep-list">
+
+        <div class="ep-row">
+          <span class="ep-method">POST</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/digital-account-view/get-accounts</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/loyalty/accounts/transaction-history/transactions</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/private/1364896/loyalty-benefits/retrieve-account-benefits</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/private/1364896/loyalty-benefits/retrieve-customer-benefits</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/private/2318634/shopping/list-offers</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">POST</span>
+          <span class="ep-path">/internal-ops/feature-experimentation/servicing/decide-variation</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/rewards-hero</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/earn-activity</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/redemption-options</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/hub-link</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/protected/375751/loyalty/accounts/value-hub-tab</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-row">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/private/2318634/shopping/partner-offers</span>
+          <button class="ep-remove">✕</button>
+        </div>
+
+        <div class="ep-add-row" onclick="showAddSearch()">+ Add endpoint</div>
+
+      </div>
+
+      <div class="center-footer">
+        <button class="btn-gen-scenario" onclick="showGenForm()">✦ Generate Scenario from this Template</button>
+      </div>
+    </div>
+
+    <!-- new template form -->
+    <div class="new-template-form" id="newTemplateForm">
+      <div class="col-cap">
+        <span class="col-cap-label">New Template</span>
+      </div>
+      <div class="ntf-body">
+
+        <div class="field-group">
+          <span class="field-label">Template Name</span>
+          <input class="field-input" type="text" placeholder="e.g. Rewards Balance">
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Description</span>
+          <textarea class="field-textarea" placeholder="e.g. The rewards hub showing balance, earn activity, and redemption options…"></textarea>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Start from</span>
+          <span class="field-hint">How do you want to populate the API list?</span>
+          <div class="source-toggle">
+
+            <button class="source-opt active" onclick="setSource(this)">
+              <div class="source-radio"><div class="source-radio-fill"></div></div>
+              <div class="source-body">
+                <div class="source-name">Plugin map</div>
+                <div class="source-desc">Seed from a Claude-generated plugin map. Claude reads your codebase and fills in the APIs.</div>
+              </div>
+            </button>
+
+            <button class="source-opt" onclick="setSource(this)">
+              <div class="source-radio"><div class="source-radio-fill"></div></div>
+              <div class="source-body">
+                <div class="source-name">Focused traffic</div>
+                <div class="source-desc">Use the APIs you focused in Live Traffic. Go focus some first, then come back.</div>
+              </div>
+            </button>
+
+            <button class="source-opt" onclick="setSource(this)">
+              <div class="source-radio"><div class="source-radio-fill"></div></div>
+              <div class="source-body">
+                <div class="source-name">Start empty</div>
+                <div class="source-desc">Add endpoints manually one by one.</div>
+              </div>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+      <div class="ntf-footer">
+        <button class="ntf-cancel" onclick="hideNewTemplateForm()">Cancel</button>
+        <button class="ntf-btn">Create Template</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: empty or generate form -->
+  <div class="col-right">
+
+    <!-- empty state -->
+    <div class="right-empty" id="rightEmpty">
+      <div class="right-empty-label">Select a template</div>
+      <div class="right-empty-sub">then click Generate Scenario<br>to create a new scenario from it.</div>
+    </div>
+
+    <!-- generate scenario form -->
+    <div class="gen-form" id="genForm">
+      <div class="gen-head">
+        <div>
+          <div class="gen-head-title">Generate Scenario</div>
+          <div class="gen-head-sub">From: Rewards Balance · 12 APIs</div>
+        </div>
+        <button class="gen-close" onclick="hideGenForm()">✕</button>
+      </div>
+
+      <div class="gen-body">
+
+        <div class="field-group">
+          <span class="gen-field-label">Scenario Name</span>
+          <input class="gen-input" type="text" placeholder="e.g. Venture X — Gold tier, 3 offers">
+        </div>
+
+        <div class="field-group">
+          <span class="gen-field-label">Describe your user</span>
+          <span class="gen-field-hint">Be specific — card type, balance, offers, loyalty tier, edge cases. The more detail, the more realistic the mocks.</span>
+          <textarea class="gen-textarea" placeholder="e.g. Venture X cardholder, Gold loyalty tier, $15k balance, eligible for all 5 partner offers, 3 pending transactions, rewards cash and miles both active…"></textarea>
+        </div>
+
+      </div>
+
+      <div class="gen-footer">
+        <button class="btn-cancel-gen" onclick="hideGenForm()">Cancel</button>
+        <button class="btn-generate">✦ Generate</button>
+        <span class="gen-hint">Generates all 12 APIs at once.<br>Takes about 30–60 seconds.</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const ALL_ENDPOINTS = [
+    { method: 'GET',  path: '/login' },
+    { method: 'POST', path: '/protected/375751/loyalty/accounts/digital-account-view/get-accounts' },
+    { method: 'GET',  path: '/loyalty/accounts/transaction-history/transactions' },
+    { method: 'GET',  path: '/private/1364896/loyalty-benefits/retrieve-account-benefits' },
+    { method: 'GET',  path: '/private/1364896/loyalty-benefits/retrieve-customer-benefits' },
+    { method: 'GET',  path: '/private/1595110/edge/customers/~/accounts' },
+    { method: 'POST', path: '/internal-ops/feature-experimentation/servicing/decide-variation' },
+    { method: 'GET',  path: '/customers/~/messaging-preferences' },
+    { method: 'GET',  path: '/private/1612081/v1/force-upgrade' },
+    { method: 'GET',  path: '/identity/enhanced-authentication/devices' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/rewards-hero' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/earn-activity' },
+    { method: 'GET',  path: '/protected/375751/loyalty/accounts/redemption-options' },
+    { method: 'GET',  path: '/private/2318634/shopping/list-offers' },
+    { method: 'GET',  path: '/private/2318634/shopping/partner-offers' },
+  ];
+
+  function selectTemplate(card) {
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    hideNewTemplateForm();
+    hideGenForm();
+  }
+
+  function showNewTemplateForm() {
+    document.getElementById('epListView').style.display = 'none';
+    document.getElementById('newTemplateForm').classList.add('visible');
+    hideGenForm();
+  }
+
+  function hideNewTemplateForm() {
+    document.getElementById('newTemplateForm').classList.remove('visible');
+    document.getElementById('epListView').style.display = 'flex';
+  }
+
+  function showGenForm() {
+    document.getElementById('rightEmpty').style.display = 'none';
+    document.getElementById('genForm').classList.add('visible');
+  }
+
+  function hideGenForm() {
+    document.getElementById('genForm').classList.remove('visible');
+    document.getElementById('rightEmpty').style.display = 'flex';
+  }
+
+  function showAddSearch() {
+    document.getElementById('epAddSearch').classList.add('visible');
+    document.getElementById('epAddInput').focus();
+  }
+
+  function hideAddSearch() {
+    document.getElementById('epAddSearch').classList.remove('visible');
+    document.getElementById('epAddDropdown').classList.remove('visible');
+    document.getElementById('epAddInput').value = '';
+  }
+
+  function filterAddEndpoints(val) {
+    const dd = document.getElementById('epAddDropdown');
+    if (!val) { dd.classList.remove('visible'); return; }
+    const matches = ALL_ENDPOINTS.filter(e => e.path.toLowerCase().includes(val.toLowerCase()));
+    if (!matches.length) { dd.classList.remove('visible'); return; }
+    dd.innerHTML = matches.map(e => `
+      <div class="ep-add-option" onclick="addEndpoint('${e.method}', '${e.path}')">
+        <span class="ep-add-opt-method">${e.method}</span>
+        <span class="ep-add-opt-path">${e.path}</span>
+      </div>
+    `).join('');
+    dd.classList.add('visible');
+  }
+
+  function addEndpoint(method, path) {
+    hideAddSearch();
+  }
+
+  function setSource(btn) {
+    document.querySelectorAll('.source-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

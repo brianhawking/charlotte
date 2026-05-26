@@ -1,0 +1,5 @@
+node_modules/
+mocks/
+scenarios/
+state.json
+.env

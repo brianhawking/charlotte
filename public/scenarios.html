@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlotte — Scenarios v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:     #000000;
+    --void:      #050505;
+    --dark-1:    #0a0a0a;
+    --dark-2:    #101010;
+    --dark-3:    #161616;
+    --dark-4:    #1e1e1e;
+    --dark-5:    #282828;
+    --dark-6:    #333333;
+    --dark-7:    #404040;
+
+    --text-1:    #f0f0f0;
+    --text-2:    #b0b0b0;
+    --text-3:    #707070;
+    --text-4:    #404040;
+
+    --blue:      #1d6aff;
+    --blue-hi:   #5590ff;
+    --blue-lo:   #0f3a99;
+    --blue-dim:  rgba(29,106,255,0.10);
+    --blue-glow: rgba(29,106,255,0.3);
+
+    --red:       #ff4444;
+    --red-dim:   rgba(255,68,68,0.1);
+
+    --mono: 'JetBrains Mono', monospace;
+    --ui:   'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--mono);
+    background: var(--black);
+    color: var(--text-1);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 12px;
+  }
+
+  /* ══ TOPBAR ══════════════════════════════════ */
+  .topbar {
+    display: flex;
+    align-items: stretch;
+    height: 50px;
+    background: var(--void);
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    border-right: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .brand::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 8px var(--blue-glow);
+  }
+
+  .brand-inner { display: flex; flex-direction: column; gap: 3px; }
+
+  .brand-name {
+    font-family: var(--ui);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .brand-name em { color: var(--blue); font-style: normal; }
+
+  .brand-sub {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-4);
+    line-height: 1;
+  }
+
+  .tabs { display: flex; flex: 1; }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    border-right: 1px solid var(--dark-4);
+    cursor: pointer;
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    transition: all 0.15s;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text-2); background: var(--dark-1); }
+  .tab.active { color: var(--text-1); background: var(--dark-2); }
+
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 10px var(--blue-glow);
+  }
+
+  .tab-n { font-family: var(--mono); font-size: 9px; font-weight: 400; color: var(--blue); }
+  .tab:not(.active) .tab-n { color: var(--dark-6); }
+
+  .tab-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-hi);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 6px var(--blue-glow);
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--dark-5);
+    flex-shrink: 0;
+  }
+
+  .btn-offline {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text-3);
+    padding: 0 22px;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-offline:hover { color: var(--text-1); background: var(--dark-2); }
+
+  /* ══ MAIN ════════════════════════════════════ */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── LEFT: scenario list ────────────────────── */
+  .col-left {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--void);
+    overflow: hidden;
+  }
+
+  .col-left-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dark-3);
+    flex-shrink: 0;
+  }
+
+  .col-left-label {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-4);
+  }
+
+  .btn-new {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-new:hover { background: var(--blue-hi); }
+
+  .scenario-list { flex: 1; overflow-y: auto; }
+  .scenario-list::-webkit-scrollbar { width: 2px; }
+  .scenario-list::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  .scenario-card {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--dark-2);
+    cursor: pointer;
+    transition: background 0.08s;
+    position: relative;
+  }
+
+  .scenario-card:hover { background: var(--dark-2); }
+  .scenario-card.selected { background: var(--dark-3); }
+
+  .scenario-card.selected::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 2px 0 8px var(--blue-glow);
+  }
+
+  .sc-row1 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 5px;
+  }
+
+  .sc-active-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue-hi);
+    box-shadow: 0 0 6px var(--blue-glow);
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .sc-name {
+    font-family: var(--ui);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-1);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sc-row2 { display: flex; align-items: center; gap: 7px; }
+
+  .sc-badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .sc-badge.captured { background: var(--dark-5); color: var(--text-3); border: 1px solid var(--dark-6); }
+  .sc-badge.generated { background: var(--blue-dim); color: var(--blue-hi); border: 1px solid var(--blue-lo); }
+
+  .sc-count { font-size: 9px; color: var(--text-4); font-family: var(--mono); }
+
+  .sc-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .scenario-card:hover .sc-actions,
+  .scenario-card.selected .sc-actions { opacity: 1; }
+
+  .sc-btn {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 18px;
+    display: flex;
+    align-items: center;
+  }
+
+  .sc-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .sc-btn.activate { border-color: var(--blue-lo); color: var(--blue-hi); background: var(--blue-dim); }
+  .sc-btn.activate:hover { border-color: var(--blue); color: var(--text-1); }
+  .sc-btn.deactivate:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+  .sc-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* ── CENTER: API accordion ──────────────────── */
+  .col-center {
+    width: 320px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--dark-4);
+    display: flex;
+    flex-direction: column;
+    background: var(--black);
+    overflow: hidden;
+  }
+
+  /* when showing new scenario form */
+  .col-center.is-form { background: var(--dark-2); }
+
+  .col-cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--dark-3);
+    flex-shrink: 0;
+  }
+
+  .col-cap-label {
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .col-cap-badge {
+    font-family: var(--mono);
+    font-size: 8px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
+  .col-cap-badge.captured { background: var(--dark-5); color: var(--text-3); border: 1px solid var(--dark-6); }
+  .col-cap-badge.generated { background: var(--blue-dim); color: var(--blue-hi); border: 1px solid var(--blue-lo); }
+
+  .api-list { flex: 1; overflow-y: auto; }
+  .api-list::-webkit-scrollbar { width: 2px; }
+  .api-list::-webkit-scrollbar-thumb { background: var(--dark-4); }
+
+  .api-group { border-bottom: 1px solid var(--dark-2); }
+
+  .api-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: background 0.08s;
+    position: relative;
+  }
+
+  .api-row:hover { background: var(--dark-2); }
+
+  .api-row.selected {
+    background: var(--dark-3);
+  }
+
+  .api-row.selected::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--blue);
+    box-shadow: 2px 0 8px var(--blue-glow);
+  }
+
+  .api-body { flex: 1; overflow: hidden; }
+
+  .api-name {
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 2px;
+  }
+
+  .api-row.selected .api-name { color: var(--text-1); }
+
+  .api-path {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-4);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .api-row-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .api-row:hover .api-row-actions,
+  .api-row.selected .api-row-actions { opacity: 1; }
+
+  .ar-btn {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .ar-btn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .ar-btn.regen { border-color: var(--blue-lo); color: var(--blue-hi); background: var(--blue-dim); }
+  .ar-btn.regen:hover { border-color: var(--blue); color: var(--text-1); }
+  .ar-btn.remove:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* ── NEW SCENARIO FORM (inside center col) ──── */
+  .new-scenario-form {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    display: none;
+  }
+
+  .new-scenario-form.visible { display: flex; }
+  .new-scenario-form::-webkit-scrollbar { width: 2px; }
+  .new-scenario-form::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  /* creation mode toggle */
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--dark-5);
+    overflow: hidden;
+  }
+
+  .mode-opt {
+    flex: 1;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: center;
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    background: none;
+    border: none;
+    transition: all 0.12s;
+    border-right: 1px solid var(--dark-5);
+    line-height: 1.3;
+  }
+
+  .mode-opt:last-child { border-right: none; }
+  .mode-opt:hover { color: var(--text-2); background: var(--dark-3); }
+
+  .mode-opt.active {
+    background: var(--blue-dim);
+    color: var(--blue-hi);
+    border-color: var(--blue-lo);
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .field-label {
+    font-family: var(--ui);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .field-hint { font-size: 9px; color: var(--text-4); line-height: 1.5; margin-top: -2px; }
+
+  .field-input {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-input:focus { border-color: var(--blue-lo); }
+  .field-input::placeholder { color: var(--text-4); font-style: italic; }
+
+  .field-select {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23404040'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  .field-select:focus { border-color: var(--blue-lo); }
+
+  .field-textarea {
+    background: var(--dark-4);
+    border: 1px solid var(--dark-6);
+    color: var(--text-1);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    resize: none;
+    height: 90px;
+    line-height: 1.6;
+    width: 100%;
+    transition: border-color 0.12s;
+    caret-color: var(--blue);
+  }
+
+  .field-textarea:focus { border-color: var(--blue-lo); }
+  .field-textarea::placeholder { color: var(--text-4); font-style: italic; }
+
+  .form-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--dark-3);
+  }
+
+  .btn-gen {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn-gen:hover { background: var(--blue-hi); }
+
+  .btn-cancel {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .btn-cancel:hover { border-color: var(--text-3); color: var(--text-2); }
+
+  .btn-gen-hint { font-size: 9px; color: var(--text-4); line-height: 1.4; }
+
+  /* ── RIGHT: JSON editor ─────────────────────── */
+  .col-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--dark-2);
+  }
+
+  .right-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 60px 40px;
+  }
+
+  .re-label {
+    font-family: var(--ui);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-4);
+    text-align: center;
+  }
+
+  .re-sub { font-size: 10px; color: var(--text-4); text-align: center; line-height: 1.6; }
+
+  .dhead {
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--dark-5);
+    flex-shrink: 0;
+    background: var(--dark-3);
+  }
+
+  .dhead-row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+
+  .d-method {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--blue-hi);
+    border: 1px solid var(--blue-lo);
+    background: var(--blue-dim);
+    padding: 3px 9px;
+    flex-shrink: 0;
+  }
+
+  .d-name { font-family: var(--ui); font-size: 13px; font-weight: 700; color: var(--text-1); flex: 1; }
+
+  .dhead-row2 { display: flex; align-items: center; gap: 8px; }
+
+  .d-path { font-family: var(--mono); font-size: 10px; color: var(--text-3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-file { font-family: var(--mono); font-size: 9px; color: var(--text-4); }
+
+  .dtabs { display: flex; background: var(--dark-2); border-bottom: 1px solid var(--dark-5); flex-shrink: 0; }
+
+  .dtab {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    cursor: pointer;
+    color: var(--text-3);
+    border-right: 1px solid var(--dark-4);
+    position: relative;
+    transition: color 0.12s;
+  }
+
+  .dtab:hover { color: var(--text-2); }
+  .dtab.active { color: var(--text-1); }
+
+  .dtab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--blue);
+    box-shadow: 0 0 8px var(--blue-glow);
+  }
+
+  .editor-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px; }
+
+  .editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--void);
+    border: 1px solid var(--dark-5);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .editor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    background: var(--dark-1);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .editor-left { display: flex; align-items: center; gap: 12px; }
+
+  .e-valid {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    font-family: var(--ui);
+    font-weight: 600;
+  }
+
+  .e-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 6px var(--blue-glow); flex-shrink: 0; }
+  .e-file { font-size: 9px; color: var(--text-4); }
+  .editor-right { display: flex; align-items: center; gap: 5px; }
+
+  .ebtn {
+    font-family: var(--ui);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--dark-5);
+    color: var(--text-3);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.12s;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .ebtn:hover { border-color: var(--text-3); color: var(--text-2); }
+  .ebtn.cta { background: var(--blue); border-color: var(--blue); color: var(--text-1); }
+  .ebtn.cta:hover { background: var(--blue-hi); border-color: var(--blue-hi); }
+
+  .editor-code { flex: 1; overflow: auto; padding: 16px 18px; }
+  .editor-code::-webkit-scrollbar { width: 3px; }
+  .editor-code::-webkit-scrollbar-thumb { background: var(--dark-5); }
+
+  pre { font-family: var(--mono); font-size: 12px; line-height: 1.9; color: #a8a8a8; white-space: pre; }
+  .jb  { color: var(--dark-6); }
+  .jk  { color: var(--blue-hi); }
+  .js  { color: #7aaa7a; }
+  .jbl { color: #c8984a; }
+  .jn  { color: #a080c8; }
+
+  .tweak {
+    display: flex;
+    border-top: 1px solid var(--dark-4);
+    flex-shrink: 0;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    background: var(--dark-1);
+  }
+
+  .tweak-in {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-style: italic;
+    color: var(--text-2);
+    padding: 9px 14px;
+    outline: none;
+    caret-color: var(--blue);
+  }
+
+  .tweak-in::placeholder { color: var(--text-4); }
+
+  .tweak-go {
+    font-family: var(--ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--blue);
+    border: none;
+    color: var(--text-1);
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .tweak-go:hover { background: var(--blue-hi); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-inner">
+      <div class="brand-name">Char<em>lotte</em></div>
+      <div class="brand-sub">Mock Intelligence</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab">Live Traffic <span class="tab-n">111</span></div>
+    <div class="tab">Mock Library <span class="tab-n">63</span></div>
+    <div class="tab">Mock Generator</div>
+    <div class="tab active">Scenarios <span class="tab-dot"></span> <span class="tab-n">2</span></div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-offline">Go Offline</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: scenario list -->
+  <div class="col-left">
+    <div class="col-left-head">
+      <span class="col-left-label">Scenarios</span>
+      <button class="btn-new" onclick="showNewForm()">+ New</button>
+    </div>
+    <div class="scenario-list">
+
+      <!-- active scenario -->
+      <div class="scenario-card selected" onclick="selectScenario(this)">
+        <div class="sc-row1">
+          <span class="sc-active-dot"></span>
+          <span class="sc-name">3 Branded — Miles and Cash</span>
+        </div>
+        <div class="sc-row2">
+          <span class="sc-badge captured">Captured</span>
+          <span class="sc-count">10 endpoints</span>
+          <div class="sc-actions">
+            <button class="sc-btn deactivate" onclick="event.stopPropagation()">Deactivate</button>
+            <button class="sc-btn del" onclick="event.stopPropagation()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- inactive scenario -->
+      <div class="scenario-card" onclick="selectScenario(this)">
+        <div class="sc-row1">
+          <span class="sc-name">Venture X — Zero Balance</span>
+        </div>
+        <div class="sc-row2">
+          <span class="sc-badge generated">Generated</span>
+          <span class="sc-count">12 endpoints</span>
+          <div class="sc-actions">
+            <button class="sc-btn activate" onclick="event.stopPropagation()">Activate</button>
+            <button class="sc-btn del" onclick="event.stopPropagation()">✕</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER: API list or new scenario form -->
+  <div class="col-center" id="colCenter">
+
+    <!-- API accordion view — default -->
+    <div id="apiView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="col-cap">
+        <span class="col-cap-label">3 Branded — Miles and Cash</span>
+        <span class="col-cap-badge captured">Captured</span>
+      </div>
+      <div class="api-list">
+
+        <div class="api-group">
+          <div class="api-row selected" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Login</div>
+              <div class="api-path">/login</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Loyalty Accounts Digital</div>
+              <div class="api-path">/protected/375751/loyalty/accounts/digital-account-view/get-accounts</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Transaction History</div>
+              <div class="api-path">/loyalty/accounts/transaction-history/transactions</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Loyalty Benefits — Account</div>
+              <div class="api-path">/private/1364896/loyalty-benefits/retrieve-account-benefits</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Loyalty Benefits — Customer</div>
+              <div class="api-path">/private/1364896/loyalty-benefits/retrieve-customer-benefits</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Edge Customer Accounts</div>
+              <div class="api-path">/private/1595110/edge/customers/~/accounts</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Decide Variation</div>
+              <div class="api-path">/internal-ops/feature-experimentation/servicing/decide-variation</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Messaging Preferences</div>
+              <div class="api-path">/customers/~/messaging-preferences</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Force Upgrade</div>
+              <div class="api-path">/private/1612081/v1/force-upgrade</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="api-group">
+          <div class="api-row" onclick="selectApi(this)">
+            <div class="api-body">
+              <div class="api-name">Enhanced Auth Devices</div>
+              <div class="api-path">/identity/enhanced-authentication/devices</div>
+            </div>
+            <div class="api-row-actions">
+              <button class="ar-btn regen" onclick="event.stopPropagation()">✦ Regen</button>
+              <button class="ar-btn remove" onclick="event.stopPropagation()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- NEW SCENARIO FORM — shown when + New clicked -->
+    <div id="newForm" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="col-cap">
+        <span class="col-cap-label">New Scenario</span>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:16px;">
+
+        <!-- capture vs generate toggle -->
+        <div class="field-group">
+          <span class="field-label">Method</span>
+          <div class="mode-toggle">
+            <button class="mode-opt" onclick="setMode('capture', this)">⊙ Capture<br>from focused</button>
+            <button class="mode-opt active" onclick="setMode('generate', this)">✦ Generate<br>with AI</button>
+          </div>
+        </div>
+
+        <!-- generate fields -->
+        <div id="generateFields" style="display:flex;flex-direction:column;gap:16px;">
+
+          <div class="field-group">
+            <span class="field-label">Scenario Name</span>
+            <input class="field-input" type="text" placeholder="e.g. Venture X — Gold tier, 3 offers">
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">Feature Map</span>
+            <span class="field-hint">Claude will generate responses for all APIs in this map.</span>
+            <select class="field-select">
+              <option value="">Select a map…</option>
+              <option selected>Rewards Balance (12 APIs)</option>
+              <option>Rewards Dashboard Venture X (8 APIs)</option>
+              <option>Card Onboarding (6 APIs)</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">Describe your user</span>
+            <span class="field-hint">Be specific — card type, balance, offers, tier, edge cases.</span>
+            <textarea class="field-textarea" placeholder="e.g. Venture X cardholder, Gold loyalty tier, $15k balance, eligible for all 5 partner offers, 3 pending transactions…"></textarea>
+          </div>
+
+        </div>
+
+        <!-- capture fields -->
+        <div id="captureFields" style="display:none;flex-direction:column;gap:16px;">
+          <div class="field-group">
+            <span class="field-label">Scenario Name</span>
+            <input class="field-input" type="text" placeholder="e.g. 3 Branded — Miles and Cash">
+          </div>
+          <div class="field-group">
+            <span class="field-label" style="color:var(--text-4)">Focused endpoints</span>
+            <span class="field-hint">Go to Live Traffic, focus the APIs you want, then come back and create.</span>
+            <div style="background:var(--dark-4);border:1px solid var(--dark-6);padding:10px 12px;font-size:10px;color:var(--text-4);">
+              No focused endpoints yet. Focus some in Live Traffic first.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="form-footer">
+        <button class="btn-cancel" onclick="hideNewForm()">Cancel</button>
+        <button class="btn-gen">✦ Generate</button>
+        <span class="btn-gen-hint">~30–60s for<br>all 12 APIs</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: JSON editor -->
+  <div class="col-right">
+    <div class="dhead">
+      <div class="dhead-row1">
+        <span class="d-method">GET</span>
+        <span class="d-name">Login</span>
+      </div>
+      <div class="dhead-row2">
+        <span class="d-path">/login</span>
+        <span class="d-file">login.json</span>
+      </div>
+    </div>
+
+    <div class="dtabs">
+      <div class="dtab active">Response</div>
+      <div class="dtab">Request</div>
+      <div class="dtab">Headers</div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor">
+        <div class="editor-bar">
+          <div class="editor-left">
+            <div class="e-valid"><div class="e-dot"></div>Valid JSON</div>
+            <span class="e-file">login.json</span>
+          </div>
+          <div class="editor-right">
+            <button class="ebtn">Format</button>
+            <button class="ebtn"><span style="color:var(--blue-hi);font-size:10px;">✦</span> Regen</button>
+            <button class="ebtn cta">Save</button>
+          </div>
+        </div>
+
+        <div class="editor-code">
+          <pre><span class="jb">{</span>
+  <span class="jk">"profileReferenceId"</span><span class="jb">:</span>   <span class="js">"dyEEnaW0hmgtys4cOn"</span><span class="jb">,</span>
+  <span class="jk">"customerReferenceId"</span><span class="jb">:</span>  <span class="js">"VokhBI7LYJ9zM+4RFEOkqQ=="</span><span class="jb">,</span>
+  <span class="jk">"platforms"</span><span class="jb">: [</span>
+    <span class="jb">{</span>
+      <span class="jk">"platformCode"</span><span class="jb">:</span>            <span class="js">"EASE"</span><span class="jb">,</span>
+      <span class="jk">"platformCodeDescription"</span><span class="jb">:</span> <span class="js">"Enterprise Account Servicing"</span>
+    <span class="jb">},</span>
+    <span class="jb">{</span>
+      <span class="jk">"platformCode"</span><span class="jb">:</span>            <span class="js">"EOS"</span><span class="jb">,</span>
+      <span class="jk">"platformCodeDescription"</span><span class="jb">:</span> <span class="js">"Card Online Servicing Platform"</span>
+    <span class="jb">}</span>
+  <span class="jb">],</span>
+  <span class="jk">"loginStatus"</span><span class="jb">:</span>  <span class="js">"SUCCESS"</span><span class="jb">,</span>
+  <span class="jk">"mobileOnly"</span><span class="jb">:</span>   <span class="jbl">false</span><span class="jb">,</span>
+  <span class="jk">"_headers"</span><span class="jb">: {</span>
+    <span class="jk">"auth-token"</span><span class="jb">:</span>       <span class="js">"mock-auth-token-offline"</span><span class="jb">,</span>
+    <span class="jk">"transaction-info"</span><span class="jb">:</span> <span class="js">"mock-transaction-info"</span>
+  <span class="jb">}</span>
+<span class="jb">}</span></pre>
+        </div>
+
+        <div class="tweak">
+          <input class="tweak-in" type="text" placeholder="Make it so… (e.g. 'set loginStatus to FAILED')">
+          <button class="tweak-go">Tweak</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function selectScenario(card) {
+    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    hideNewForm();
+  }
+
+  function selectApi(row) {
+    document.querySelectorAll('.api-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+  }
+
+  function showNewForm() {
+    document.getElementById('apiView').style.display = 'none';
+    document.getElementById('newForm').style.display = 'flex';
+  }
+
+  function hideNewForm() {
+    document.getElementById('newForm').style.display = 'none';
+    document.getElementById('apiView').style.display = 'flex';
+  }
+
+  function setMode(mode, btn) {
+    document.querySelectorAll('.mode-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (mode === 'generate') {
+      document.getElementById('generateFields').style.display = 'flex';
+      document.getElementById('captureFields').style.display = 'none';
+    } else {
+      document.getElementById('generateFields').style.display = 'none';
+      document.getElementById('captureFields').style.display = 'flex';
+    }
+  }
+</script>
+</body>
+</html>

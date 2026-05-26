@@ -1,0 +1,15 @@
+{
+  "name": "charlotte",
+  "version": "1.0.0",
+  "description": "Charlotte — Internal Mock Intelligence tool",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy": "^1.18.1",
+    "axios": "^1.6.0",
+    "@anthropic-ai/sdk": "^0.20.0"
+  }
+}
