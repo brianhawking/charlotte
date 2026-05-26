@@ -321,6 +321,84 @@ Save each response as a mock file and create the scenario JSON pointing to them.
 
 ---
 
+## Focus Workflow
+
+Focus is a Live Traffic feature that lets the developer mark specific intercepted requests as "interesting" for later use. Here is the exact flow:
+
+### Step 1 — Developer clicks Focus on a request in Live Traffic
+- The request is added to `state.focused` array in state.json
+- The request object stored in focused includes the full request (method, path, headers, body, params) AND the full response body that was returned
+- The focused request gets a unique ID
+- In the UI, focused requests are visually marked in the Live Traffic stream
+
+### Step 2 — Developer edits the response (optional)
+- Clicking a focused request in Live Traffic shows the response in the JSON editor on the right
+- The developer can edit the JSON directly or use the Tweak bar to ask Claude to modify it
+- Changes are stored in memory against that focused request ID — nothing is saved to disk yet
+
+### Step 3 — Developer saves
+Saving is a deliberate action. There are three save options available from the Live Traffic toolbar when focused requests exist:
+
+**Save as Mock** — saves the focused request as an individual mock file
+- Converts the path to a folder name
+- If no mock exists for that folder yet: save as `{mock-name}.json`
+- If a mock already exists for that folder (collision): call Claude to generate a variant label from the request body, use that as the filename
+- The saved mock file includes `_meta`, `_request`, `_headers`, and the response body
+- The request body stored in `_request` is what the server uses later to match this variant in offline mode
+- After saving, the mock appears in Mock Library under that endpoint
+
+**Save as Template** — saves the API list from focused requests as a new scenario template
+- Does NOT save response content — only the list of endpoints (method + path)
+- Creates a new file in `templates/`
+- Origin is set to `"captured"`
+
+**Save as Scenario** — saves the focused requests as a complete captured scenario
+- Saves each response as a mock file (same collision handling as Save as Mock)
+- Creates a scenario JSON file pointing to those mock files
+- Origin is set to `"captured"`
+- The scenario appears in the Scenarios tab immediately
+
+### Focus state is ephemeral
+Focused requests live in memory and in `state.focused`. They are NOT automatically saved anywhere. The developer must explicitly choose Save as Mock, Save as Template, or Save as Scenario. Closing or restarting the server clears focused state.
+
+---
+
+## Serving — How Mocks Are Activated Per Endpoint
+
+"Serving" means telling Charlotte which mock to return when a specific endpoint is called in offline mode. Only one mock can be serving per endpoint at a time.
+
+### The serving map
+`state.serving` is a flat map of endpoint path → mock file path:
+```json
+{
+  "serving": {
+    "/login": "login/login-standard.json",
+    "/protected/375751/loyalty/accounts/digital-account-view/get-accounts": "protected-375751-loyalty-accounts-digital-account-view-get-accounts/miles-and-cash.json"
+  }
+}
+```
+
+### How serving is set
+- In Mock Library, each mock row has a **"Serve this"** button. Clicking it sets that mock as serving for its endpoint — updates `state.serving` and writes `state.json`
+- Only one mock per endpoint can be serving at a time — setting a new one replaces the old one
+- The currently serving mock shows a filled radio button indicator in the UI
+
+### How serving is cleared
+- In Mock Library, the currently serving mock row shows a **"Stop serving"** button on hover. Clicking it removes that endpoint from `state.serving`
+- After stopping, no mock is served for that endpoint in offline mode — Charlotte returns the no-mock error for that endpoint
+
+### Serving and scenarios
+- Activating a scenario sets the serving map in bulk — it replaces `state.serving` with the scenario's mock mappings for all its endpoints
+- This is instant, no restart needed
+- After activation, individual mocks can still be swapped out without affecting the scenario definition
+- Deactivating a scenario clears the serving map entirely
+- Only one scenario can be active at a time
+
+### Serving is independent of scenarios
+Once a scenario is activated and the serving map is set, the developer can freely change individual serving mocks in Mock Library without affecting the saved scenario. The scenario is a preset — activating it is like loading a save state. After loading, the developer can make changes freely.
+
+---
+
 ## Traffic Logging
 
 Keep the last 500 requests in memory (not on disk). Each entry:
