@@ -260,6 +260,31 @@ Build these Express routes:
 
 ## Claude Integration
 
+All Claude calls in server.js are made via `claude -p` — the Claude Code CLI running as a subprocess. There is no Anthropic API key or SDK involved. Claude Code must be installed and authenticated on the developer's machine for these calls to work.
+
+### How to call Claude from server.js
+
+```js
+const { execSync } = require('child_process');
+
+function callClaude(prompt) {
+  try {
+    const escaped = prompt.replace(/"/g, '\"').replace(/`/g, '\`');
+    const result = execSync(`claude -p "${escaped}"`, {
+      encoding: 'utf8',
+      timeout: 120000  // 2 min timeout for longer generation tasks
+    });
+    return result.trim();
+  } catch (err) {
+    throw new Error(`Claude call failed: ${err.message}`);
+  }
+}
+```
+
+For calls that need to return JSON, instruct Claude in the prompt to return only valid JSON with no markdown, no backticks, no preamble.
+
+---
+
 ### 1. Generate Single Mock
 `POST /api/mocks/generate`
 
@@ -273,24 +298,47 @@ Request body:
 }
 ```
 
-Claude prompt approach:
-- Tell Claude the endpoint path, method, and user description
-- If a feature map exists for this endpoint, include the response field schema as context
-- Ask Claude to return only valid JSON matching the expected response structure
-- Save the result as a mock file
+Example prompt:
+```
+Generate a realistic JSON response for this iOS API endpoint:
+Endpoint: POST /protected/375751/loyalty/accounts/digital-account-view/get-accounts
+User description: User with Miles and Cash rewards, zero balance on both currencies, no active partner offers
+
+Return only valid JSON. No markdown, no backticks, no explanation.
+```
+
+Parse the result as JSON and save as a mock file.
 
 ### 2. Generate Variant Label
 Called automatically when saving a mock that collides with an existing endpoint folder. See Variant Naming section above.
 
+Example prompt:
+```
+Given this API endpoint: /internal-ops/feature-experimentation/servicing/decide-variation
+And this request body: {"featureKey": "Card_OnboardingStates_Plugin"}
+
+Return a single short label (2-4 words, hyphenated, lowercase) that uniquely identifies what makes this request distinct from other calls to the same endpoint. Return only the label, nothing else.
+```
+
 ### 3. Generate Variants from Existing Mock
 `POST /api/mocks/:folder/:filename/variants`
 
-Takes an existing mock response and asks Claude to generate meaningful real-world variations of it. For example, given a rewards balance response, Claude generates:
-- Zero balance variant
-- Miles only variant  
-- Ineligible user variant
+Takes an existing mock response and asks Claude to generate meaningful real-world variations. For example, given a rewards balance response, Claude generates zero balance, miles only, ineligible user variants.
 
-Claude should understand the domain from the response shape and generate 3-5 named variants. Each gets saved as a separate mock file in the same folder.
+Example prompt:
+```
+Here is an existing API mock response for endpoint: /protected/375751/loyalty/accounts/digital-account-view/get-accounts
+
+{...existing response JSON...}
+
+Generate 3-5 meaningful real-world variations of this response. Each variation should represent a different realistic user state (e.g. zero balance, different currency types, ineligible user, etc).
+
+Return only a JSON array where each item has:
+- "name": short descriptive name (e.g. "zero-balance")  
+- "response": the full response JSON for that variant
+
+No markdown, no backticks, no explanation.
+```
 
 ### 4. Generate Full Scenario Suite
 `POST /api/scenarios/generate`
@@ -304,20 +352,31 @@ Request body:
 }
 ```
 
-This is the most important Claude call. Claude must:
-1. Read the template to get the list of APIs
-2. Generate ALL responses at once in a single call — not one by one
-3. Ensure consistency across all responses — the same accountReferenceId, productId, balances, and user details must appear correctly in every response that references them
-4. Return a JSON object mapping each endpoint to its complete response body
+This is the most important Claude call. Claude must generate ALL responses at once — not one by one — and ensure consistency across all responses (same accountReferenceId, productId, balances, and user details throughout).
 
-Prompt approach:
-- Pass the full template API list with any available schema hints
-- Pass the user description
-- Ask Claude to return a single JSON object where keys are endpoint paths and values are the response bodies
-- Stress that IDs, account references, and user state must be consistent across all responses
-- Claude should generate baseline API responses too (login, accounts) unless told not to
+Example prompt:
+```
+Generate a complete suite of mock API responses for an iOS app scenario.
 
-Save each response as a mock file and create the scenario JSON pointing to them.
+User description: Venture X cardholder, Gold loyalty tier, $15k balance, eligible for all 5 partner offers
+
+APIs to generate responses for:
+- POST /protected/375751/loyalty/accounts/digital-account-view/get-accounts
+- GET /loyalty/accounts/transaction-history/transactions
+- GET /private/1364896/loyalty-benefits/retrieve-account-benefits
+- GET /private/1364896/loyalty-benefits/retrieve-customer-benefits
+- (etc — full list from template)
+
+Critical requirements:
+- All responses must be consistent with each other
+- The same accountReferenceId, productId, and user details must appear correctly in every response that references them
+- IDs and references must match across responses — if login returns accountReferenceId "abc123", every other response that uses an account reference must use "abc123"
+- Generate realistic-looking values, not placeholder text
+
+Return only a JSON object where keys are the endpoint paths and values are the complete response bodies. No markdown, no backticks, no explanation.
+```
+
+Parse the result, save each endpoint response as a mock file, create the scenario JSON pointing to them.
 
 ---
 
@@ -457,7 +516,7 @@ Keep this in mind when building the server — do not hardcode any HTTPS assumpt
 - Store `state.json` in the project root, read on startup, write on every state change
 - Mock files are JSON — always validate before saving, return `{ valid: false, error: "..." }` if invalid
 - The `_meta`, `_request`, and `_headers` fields are Charlotte internals — strip them before sending to the iOS app
-- For Claude API calls, use `@anthropic-ai/sdk`
+- For Claude calls, use `claude -p` as a subprocess via `execSync`. No API key or SDK needed — Claude Code must be installed on the developer's machine
 - The server should run on port 3001 by default (configurable)
 - The UI is served as static files from the `public/` folder at the root route
 
