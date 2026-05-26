@@ -346,22 +346,29 @@ The `variantKey` is whatever Claude or the server determines makes this request 
 
 ---
 
-## Proxy Setup
+## How Charlotte Integrates with the iOS App
 
-Charlotte acts as an HTTP proxy. The iOS app should be configured (via Charles or similar) to route through Charlotte's local port.
+Charlotte is NOT a proxy itself. It is a local HTTP server. The actual traffic interception is handled by Charles Proxy, which the developer already has running.
 
-When in passthrough mode:
-1. Receive request from iOS app
-2. Log it to the traffic buffer
-3. Forward to the real API
-4. Log the response
-5. Return response to the app
+### iOS Setup (current, no code changes needed)
+1. Developer runs Charlotte locally on port 3001
+2. Charles Proxy is already running and intercepting iOS app traffic
+3. Developer adds a **Map Remote** rule in Charles:
+   - From: `https://api.yourcompany.com/*`
+   - To: `http://localhost:3001/*`
+4. Charles forwards matching requests to Charlotte
+5. Charlotte logs the request, returns a mock (offline mode) or forwards to the real API (passthrough mode) and logs the response
 
-When in offline mode:
-1. Receive request
-2. Log it
-3. Look up mock
-4. Return mock response (with injected headers)
+In passthrough mode Charlotte needs to forward the request to the real API and return the response. Use axios for this — Charlotte sits between Charles and the real API.
+
+Charlotte receives requests over **HTTP** (not HTTPS) from Charles Map Remote. Do not require HTTPS on the Charlotte server.
+
+### Android Setup (future, not current priority)
+Android cannot use Charles Map Remote the same way iOS can. For Android, the base URL in the Android codebase will need to be changed to point directly to the Charlotte server (e.g. `http://10.0.2.2:3001` for Android emulator, or the Mac's local IP for a physical device).
+
+Important: Android requires **HTTP** (not HTTPS) when pointing directly at a local server. Charlotte must support plain HTTP. Do not redirect HTTP to HTTPS. When Android support is added, no SSL setup should be required on the Charlotte side.
+
+Keep this in mind when building the server — do not hardcode any HTTPS assumptions. The server should work cleanly over HTTP from day one.
 
 ---
 
